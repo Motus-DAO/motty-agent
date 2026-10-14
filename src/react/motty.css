@@ -1,0 +1,42 @@
+/* Minimal Motty markdown chrome — import via `@motusdao/motty/styles.css` */
+.motty-md {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.motty-md p {
+  margin: 0 0 0.5rem;
+}
+
+.motty-md p:last-child {
+  margin-bottom: 0;
+}
+
+.motty-md ul,
+.motty-md ol {
+  margin: 0 0 0.5rem;
+  padding-left: 1.15rem;
+}
+
+.motty-md a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.motty-md strong {
+  font-weight: 600;
+}
+
+.motty-md h2,
+.motty-md h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0.35rem 0 0.35rem;
+}
+
+.motty-md code {
+  font-size: 0.8em;
+  padding: 0.1em 0.3em;
+  border-radius: 0.25rem;
+  background: rgba(127, 127, 127, 0.15);
+}
