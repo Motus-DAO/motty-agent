@@ -93,3 +93,5 @@ export {
   hubCompanionPrompt,
   paymentsPrompt,
 } from "./presets/prompts.js";
+
+export * from "./chain/index.js";

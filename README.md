@@ -153,6 +153,13 @@ Canonical product notes: `LandingMotus/docs/MOTTY.md`.
 
 ---
 
+## On-chain proof
+
+The real Celo mainnet E2E — contracts, escrow ids, full tx hashes, 90/10
+amounts, ERC-8004 identity, ERC-8021 attribution and Ripio ramp — lives in
+[`docs/PROOF.md`](docs/PROOF.md). The escrow source is in
+[`contracts/TherapyEscrow.sol`](contracts/TherapyEscrow.sol).
+
 ## Payments, booking and in-chat actions
 
 The SDK ships **10 payment/booking tools** on top of the knowledge/funnel tools. They are opt-in and require a host adapter:
