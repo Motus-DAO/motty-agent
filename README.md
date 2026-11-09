@@ -7,6 +7,8 @@ it runs where the money and the user already are — no separate agent
 infrastructure, no custodian, no key storage.
 
 ```bash
+npm install https://registry.npmjs.org/@motusdao/motty/-/motty-0.1.0.tgz
+# or straight from git
 npm install github:Motus-DAO/motty-agent
 ```
 
@@ -204,10 +206,12 @@ Motty is **not** MotusAI / PsyChat / OpenClaw. Public runtime is always `in-proc
 ## Install
 
 ```bash
-# from another Motus repo (path / git)
+# from another Motus repo (path / git / published tarball)
 npm install ../Agents/motty-agent
 # or
-npm install git+ssh://git@github.com/MotusDAO/motty-agent.git
+npm install github:Motus-DAO/motty-agent
+# or a pinned build from the npm registry
+npm install https://registry.npmjs.org/@motusdao/motty/-/motty-0.1.0.tgz
 ```
 
 Peer deps (when using UI / Next route): `next`, `react`, `react-dom`, `react-markdown`, `lucide-react`.
