@@ -86,7 +86,7 @@ Release split: **9.0 wMXN** to the professional and **1.0 wMXN** to treasury.
 
 - 50 wMXN bought from the Ripio on-ramp on iPhone; tx
   `0xf02132ff9a51…b379e2` (prefix/suffix; full hash in Celoscan).
-- The SDK exposes `getRipioRampLink` through the payments adapter.
+- The SDK exposes `getMyRipioRampLink` through the payments adapter.
 
 ## Verify locally
 
