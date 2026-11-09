@@ -6,6 +6,22 @@ to your database, your chain client and your user's wallet through adapters, so
 it runs where the money and the user already are — no separate agent
 infrastructure, no custodian, no key storage.
 
+## Onchain proof — one 1 wMXN session, settled 90/10
+
+Celo mainnet, escrow
+`0x3f92c51291a5a31b5edec0692f41b7e54f561605c6357bdb6ddd0b82a448d4cd`:
+
+| Step | Transaction | Block |
+| --- | --- | --- |
+| `createSession` | [`0x742fc9f2…4495`](https://celoscan.io/tx/0x742fc9f206c2df76a842e2cc8cce66861b43fb8473d6090259e7421fb5d04495) | 82228557 |
+| `deposit` (patient) | [`0x4afe8bfc…28cd`](https://celoscan.io/tx/0x4afe8bfc10e32567d1ef319864625aeb6f8340f78baf0c970eda4d9a845c28cd) | 82229730 |
+| `settle` (professional) | [`0x1395ee7c…cb07`](https://celoscan.io/tx/0x1395ee7c0243d88e8e8e3f8c80a255e4bd656bd59f6610a8000536a74d56cb07) | 82229919 |
+| `release` (settlement agent) | [`0x58dc83f6…2853`](https://celoscan.io/tx/0x58dc83f65a2de9ec9672377f88c1c20682cb33046a5ed8aa7b53c0cb64422853) | 82230063 |
+
+`release` moved **0.9 wMXN** to the psychologist and **0.1 wMXN** to the DAO
+treasury; the escrow ends `Released`. More cycles, blocks and addresses:
+[docs/PROOF.md](docs/PROOF.md).
+
 ```bash
 npm install @motusdao/motty
 ```
@@ -183,15 +199,27 @@ Escrow id `0xa43437802d1594d9661ab01d36be0ccf7c3a2eca08bde5ac8949ebe1d2b5c05d`
 
 ### Autonomy
 
-The release transactions above were sent by the settlement agent
-`0xb3C5…d47B`, not by a person pressing a button in a dashboard: the worker
-scans escrows, checks `startsAt` + challenge window, then calls `settle` and
-`release`. It runs on the Hub as `npm run agent:tick` behind a 2-minute cron;
-the chain client it uses is [`src/chain/escrow.ts`](src/chain/escrow.ts) here.
+The flow has two different signers, on purpose:
+
+1. **The professional authorises.** After the session, they sign `settle` from
+   their own wallet (`0xd056…Ba3b` in the transactions above) — the agent cannot
+   mark a session as delivered on their behalf.
+2. **The agent releases.** Once the contract allows it (`startsAt` reached,
+   challenge window elapsed, session settled), the settlement worker
+   `0xb3C5…d47B` calls `release`, which pays the 90/10 split. No human clicks
+   anything at this step.
+
+That worker runs on the Hub as `npm run agent:tick` behind a two-minute cron; the
+chain client it uses is [`src/chain/escrow.ts`](src/chain/escrow.ts) here.
 
 **Scope honesty:** the volume above is our own end-to-end runs against the live
 contract — reproducible with the snippet in [Verify it yourself](#verify-it-yourself).
 Independent patient acquisition is the next milestone, not something claimed here.
+
+The public MCP and A2A endpoints run the **mock adapter**: they demonstrate the
+protocol surface and answer with demo data, they do not touch the database or
+sign anything. The product that moves real money is the Hub deployment; the
+endpoints show how another agent would plug into the same tool layer.
 
 ### Verify it yourself
 
@@ -217,6 +245,28 @@ splitEscrow(1_000_000_000_000_000_000n);
 Cross-check any hash on Celoscan:
 `https://celoscan.io/tx/<hash>` — the ERC-8021 suffix
 `celo_0ee3486819c5` is in the calldata.
+
+## What was built during the hackathon
+
+Motty existed before this call as a chat agent inside three Motus products
+(knowledge answers and a conversion funnel). That code is the starting point this
+package was extracted from, and it is not presented here as new. The Hub platform
+(auth, therapy booking, Stripe) also predates the window.
+
+Everything below was written between **6 Oct** and **9 Nov 2026**:
+
+| When | What | Evidence |
+| --- | --- | --- |
+| Oct 14 | The SDK: the chat agent extracted into an installable package | `28cb4bf` |
+| Nov 7 | `TherapyEscrow.sol`, the non-custodial 90/10 escrow | hub `cecbe46` |
+| Nov 7 | ERC-8021 attribution wired into the Hub's Celo transactions | hub `95041b3` |
+| Nov 8 | Contract deployed to Celo mainnet, ownership moved to a cold owner | block `82227556` · `0xe8bdf10a…` |
+| Nov 8 | ERC-8004 identity `10053` registered from the settlement wallet | block `82227568` |
+| Nov 8 | wMXN integration: booking creates the escrow, patient deposit, professional confirmation, activity feed | hub `466da01`, `e316aa8`, `95505bf` |
+| Nov 8 | Settlement worker that releases settled escrows with the tag | hub `289bb13` |
+| Nov 8–9 | Payments layer in the SDK: adapter, 10 tools, typed action cards | `2e26495` |
+| Nov 9 | MCP (stdio + HTTP) and A2A surfaces; npm `0.1.1` | `39aecc3`, `7910d30` |
+| Nov 9 | Identity `10066`, registered with the tag in the calldata | `0x7a3bed75…e686` |
 
 ## Package surface
 

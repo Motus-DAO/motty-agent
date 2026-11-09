@@ -13,7 +13,7 @@ mainnet (42220)** and is verifiable on Celoscan.
 | Escrow deploy block | `82227556` |
 | DAO treasury | `0xf229F3Dcea3D7cd3cA5ca41C4C50135D7b37F2b9` |
 | Settlement agent | `0xb3C5EA7E583FBa073006c6C553239daC59e3d47B` |
-| ERC-8004 agentId | `10053` |
+| ERC-8004 agentId | `10066` (tagged registration) |
 | ERC-8021 attribution | `celo_0ee3486819c5` |
 
 ## E2E #1 — 1 wMXN therapy session

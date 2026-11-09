@@ -1,6 +1,6 @@
 {
   "name": "@motusdao/motty",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Reusable Motty agent \u2014 lightweight MCP knowledge guide with optional funnel tools, signed sessions, and auth/progress adapters.",
   "license": "MIT",
   "private": false,

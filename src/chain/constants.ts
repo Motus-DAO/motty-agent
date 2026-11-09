@@ -15,7 +15,9 @@ export const DAO_TREASURY_ADDRESS =
   "0xf229F3Dcea3D7cd3cA5ca41C4C50135D7b37F2b9" as const;
 export const SETTLEMENT_AGENT_ADDRESS =
   "0xb3C5EA7E583FBa073006c6C553239daC59e3d47B" as const;
-export const ERC8004_AGENT_ID = 10053;
+// 10066 is the identity registered with the ERC-8021 tag in the calldata;
+// 10053 is the first registration and predates the tag.
+export const ERC8004_AGENT_ID = 10066;
 
 /** ERC-8021 attribution code used by the hackathon transactions. */
 export const CELO_ATTRIBUTION_CODE = "celo_0ee3486819c5";
