@@ -224,6 +224,24 @@ nobody has to click.
 It runs on the Hub as `npm run agent:tick` behind a two-minute cron and imports
 [`src/chain/escrow.ts`](src/chain/escrow.ts) for the ABI and the reader.
 
+#### It is running in production
+
+| Evidence | Value |
+| --- | --- |
+| Cron | `*/2 * * * *` on `vps-motusdao`: `POST https://app.motusdao.org/api/agent/tick` with a bearer secret |
+| Log | `~/motus-agent.log` |
+| Ticks recorded | 713 |
+| Releases executed by the worker | 1 — escrow `0xa43437…c05d` → tx [`0xc158a1d6…fc0b`](https://celoscan.io/tx/0xc158a1d6283448efde101028a067b91aebf91955883f5292ac8c585efe74fc0b) (the 10 wMXN cycle above) |
+| Failures | 6 HTTP 500 responses from the endpoint over the same period; the next cron tick retries |
+
+The release line, verbatim from the log:
+
+```json
+{"checked":4,"released":1,"txs":[{"id":"0xa43437802d1594d9661ab01d36be0ccf7c3a2eca08bde5ac8949ebe1d2b5c05d","hash":"0xc158a1d6283448efde101028a067b91aebf91955883f5292ac8c585efe74fc0b","status":"success"}],"errors":[]}
+```
+
+Nobody clicked anything for that transaction.
+
 #### Guards, as they exist in the deployed contract
 
 - `release`: `InvalidStatus` unless the session is `Settled`; `TooEarly` before
