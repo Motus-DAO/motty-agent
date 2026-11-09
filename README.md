@@ -68,7 +68,7 @@ treasury on its own.
 | --- | --- |
 | Live product | <https://app.motusdao.org> — `/pagar/<id>`, `/pagos/historial`, `/finanzas/actividad` |
 | This repo (forkable SDK) | <https://github.com/Motus-DAO/motty-agent> |
-| Agent identity (ERC-8004) | agentId **10053** · <https://8004scan.io> |
+| Agent identity (ERC-8004) | agentId **10066** (tagged registration) · <https://8004scan.io> |
 | Attribution (ERC-8021) | `celo_0ee3486819c5` on every Celo tx |
 
 ### Rails (Celo mainnet, 42220)
@@ -125,12 +125,22 @@ Escrow id `0xa43437802d1594d9661ab01d36be0ccf7c3a2eca08bde5ac8949ebe1d2b5c05d`
 - **On-ramp:** 50 wMXN bought through Ripio on an iPhone, arriving on Celo
   mainnet as wMXN (tx `0xf02132ff9a51…b379e2`). The SDK exposes
   `getMyRipioRampLink` so the agent can hand a prefilled ramp URL to the patient.
-- **Identity:** agent **10053** registered via ERC-8004 — tx
-  `0x2d01e5910bbccdb423d3c47c9b3fbbe44101a6ca167378343def72232cc713ac`,
-  metadata at <https://app.motusdao.org/agent.json>.
+- **Identity:** agent **10066**, registered via ERC-8004 **with the attribution
+  tag inside the calldata** — tx
+  `0x7a3bed756204cc9b83b2a818a3a3efe7bb5873a429363b98469efbb6111ae686`.
+  First identity `10053` (`0x2d01e591…13ac`) predates the tag. Metadata:
+  <https://app.motusdao.org/agent.json>.
 - **Attribution:** `celo_0ee3486819c5` appended to the calldata of every Celo tx
-  (`attributionSuffix()`); first tagged WaaP transfer `0x9d0ad535…74a22`.
-  `hasAttribution()` verifies a tx carries it.
+  (`attributionSuffix()`); `hasAttribution()` verifies it. Coverage on the
+  escrow contract, measured over all its logs:
+
+  | Metric | Value |
+  | --- | --- |
+  | Transactions touching `TherapyEscrow` | 17 |
+  | Of those, carrying the tag | **15** (the 2 without are contract deploy + ownership transfer) |
+  | Sessions created | 6 (`1`, `832.5`, `10`, `10`, `10`, `832.5` wMXN) |
+  | Deposited | **31 wMXN** |
+  | Released | **11 wMXN** → 9.9 to payees, 1.1 to treasury |
 
 ### Why it scores (LatAm rubric)
 

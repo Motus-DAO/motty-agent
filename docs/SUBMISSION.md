@@ -12,7 +12,7 @@ Paste-ready answers for the Loops House form. Everything here is backed by
 | Repo | <https://github.com/Motus-DAO/motty-agent> |
 | Live product | <https://app.motusdao.org> |
 | Agent wallet | `0xb3C5EA7E583FBa073006c6C553239daC59e3d47B` |
-| ERC-8004 agentId | `10053` |
+| ERC-8004 agentId | `10066` (registered with the tag; first identity `10053` predates it) |
 | ERC-8021 tag | `celo_0ee3486819c5` |
 | Contract | `0xFd9F38AD6143B018e60F86B5304C53223FBf2dBC` (Celo mainnet) |
 
@@ -78,7 +78,8 @@ Five escrows; two complete `create → deposit → settle → release` cycles.
 | Release split | 0.9 wMXN to the psychologist, 0.1 wMXN to the DAO treasury |
 | 10 wMXN cycle | escrow `0xa43437…c05d` · `create` `0x58d93f…aec4` · `deposit` `0x69b843…4063` · `settle` `0x962546…f52df` · `release` `0xc158a1…fc0b` |
 | More escrows | 10 + 10 + 832.5 wMXN (45 USD @ 18.5) on the same contract |
-| Agent identity | ERC-8004 `10053`, registration `0x2d01e591…13ac` |
+| Agent identity | ERC-8004 `10066`, registration `0x7a3bed75…e686` (tag in calldata) |
+| Attribution coverage | 15 of 17 escrow txs tagged · 31 wMXN deposited · 11 wMXN released |
 | Attribution | `celo_0ee3486819c5` on every Celo transaction |
 | Ramp | 50 wMXN bought through Ripio's on-ramp on a phone |
 

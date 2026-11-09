@@ -73,14 +73,35 @@ Release split: **9.0 wMXN** to the professional and **1.0 wMXN** to treasury.
 
 ## ERC-8004 / ERC-8021
 
-- Agent identity: **10053**; registration tx
-  `0x2d01e5910bbccdb423d3c47c9b3fbbe44101a6ca167378343def72232cc713ac`.
+- Agent identity: **10066**, registered **with the ERC-8021 tag inside the
+  calldata** — tx
+  `0x7a3bed756204cc9b83b2a818a3a3efe7bb5873a429363b98469efbb6111ae686`
+  (block `82315552`, signer `0xb3C5…d47B`, `ownerOf(10066)` = `0xb3C5…d47B`).
+- First identity: **10053**; registration tx
+  `0x2d01e5910bbccdb423d3c47c9b3fbbe44101a6ca167378343def72232cc713ac` — it
+  predates the tag, so it is not credited as tagged activity. It cannot be
+  retagged retroactively.
 - Metadata: `https://app.motusdao.org/agent.json`.
 - Attribution code `celo_0ee3486819c5` is appended to the Hub's Celo
   transactions. The first tagged 1 wMXN WaaP tx is
   `0x9d0ad535…74a22` (prefix/suffix; full hash in Celoscan).
 - `attributionSuffix()` in [`src/chain/attribution.ts`](../src/chain/attribution.ts)
   returns the ERC-8021 data suffix for host transactions.
+
+### Attribution coverage (measured, not estimated)
+
+Every log of `TherapyEscrow` from the deploy block (`82227556`) to
+`82315284` was fetched with `eth_getLogs` and each transaction's calldata was
+checked for the tag (`63656c6f5f306565333438363831396335`):
+
+| Metric | Value |
+| --- | --- |
+| Transactions touching the contract | 17 |
+| Carrying the tag | **15** |
+| Untagged (not payments) | deploy `0xe8bdf10a…` and ownership transfer `0x7b33c105…` |
+| Sessions created | 6 (`1`, `832.5`, `10`, `10`, `10`, `832.5` wMXN) |
+| Deposited | **31 wMXN** |
+| Released | **11 wMXN** → 9.9 payees, 1.1 treasury |
 
 ## Ripio ramp
 
