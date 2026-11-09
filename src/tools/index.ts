@@ -6,6 +6,12 @@ import {
 } from "../core/mcp.js";
 import { getOffer, recommendOffer } from "../core/offers.js";
 import type { MottyAudience, MottySession, ToolResult } from "../core/types.js";
+import {
+  PAYMENT_TOOL_NAMES,
+  PAYMENT_TOOL_SCHEMAS,
+  executePaymentTool,
+  type PaymentToolName,
+} from "./payments.js";
 
 export const ALL_MOTTY_TOOL_NAMES = [
   "searchKnowledge",
@@ -14,6 +20,16 @@ export const ALL_MOTTY_TOOL_NAMES = [
   "createCheckout",
   "createAccount",
   "handoffToHuman",
+  "getMyUpcomingSession",
+  "quoteTherapyInWmxn",
+  "getMyWalletBalance",
+  "getMyPaymentStatus",
+  "createTherapyEscrowForMySession",
+  "getMyRipioRampLink",
+  "prepareTransfer",
+  "getMyTherapistAvailability",
+  "bookTherapySession",
+  "createProductPayment",
 ] as const;
 
 export type MottyToolName = (typeof ALL_MOTTY_TOOL_NAMES)[number];
@@ -34,7 +50,7 @@ export type OpenAiTool = {
   };
 };
 
-const TOOL_SCHEMAS: Record<MottyToolName, OpenAiTool> = {
+const TOOL_SCHEMAS: Record<string, OpenAiTool> = {
   searchKnowledge: {
     type: "function",
     function: {
@@ -118,12 +134,19 @@ const TOOL_SCHEMAS: Record<MottyToolName, OpenAiTool> = {
       },
     },
   },
+  ...Object.fromEntries(
+    PAYMENT_TOOL_SCHEMAS.map((tool) => [tool.function.name, tool]),
+  ),
 };
+
+export const PAYMENT_ENABLED_TOOLS: readonly MottyToolName[] = [
+  ...PAYMENT_TOOL_NAMES,
+];
 
 export function enabledToolSchemas(
   enabled: readonly MottyToolName[] = DEFAULT_ENABLED_TOOLS,
 ): OpenAiTool[] {
-  return enabled.map((name) => TOOL_SCHEMAS[name]);
+  return enabled.map((name) => TOOL_SCHEMAS[name] as OpenAiTool);
 }
 
 export async function executeMottyTool(
@@ -143,6 +166,10 @@ export async function executeMottyTool(
   }
 
   const args = isRecord(rawArgs) ? rawArgs : {};
+
+  if ((PAYMENT_TOOL_NAMES as readonly string[]).includes(name)) {
+    return executePaymentTool(name as PaymentToolName, args, session);
+  }
 
   switch (name) {
     case "searchKnowledge":

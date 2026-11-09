@@ -8,6 +8,10 @@ import {
   type CookieJar,
 } from "../core/session.js";
 import type { MottyLearningContext, MottyLocale } from "../core/types.js";
+import {
+  configureMottyPayments,
+  type MottyPaymentsAdapter,
+} from "../core/payments.js";
 import { publicEcosystemPrompt } from "../presets/prompts.js";
 import {
   DEFAULT_ENABLED_TOOLS,
@@ -32,6 +36,8 @@ export type CreateMottyChatHandlerOptions = {
     extras: { pagePath: string | null; userId?: string },
   ) => string;
   enabledTools?: readonly MottyToolName[];
+  /** Host payments adapter: sessions, escrow, transfers, products. */
+  payments?: MottyPaymentsAdapter;
   /** Provide Next cookies() adapter. Required for session persistence. */
   getCookieJar: () => Promise<CookieJar> | CookieJar;
   rateLimit?: {
@@ -61,6 +67,7 @@ const hits = new Map<string, { count: number; resetAt: number }>();
  */
 export function createMottyChatHandler(options: CreateMottyChatHandlerOptions) {
   if (options.config) configureMotty(options.config);
+  if (options.payments) configureMottyPayments(options.payments);
 
   const windowMs = options.rateLimit?.windowMs ?? 10 * 60 * 1000;
   const maxHits = options.rateLimit?.maxHits ?? 24;
@@ -139,7 +146,11 @@ export function createMottyChatHandler(options: CreateMottyChatHandlerOptions) {
       });
       const next = appendTurn(turn.session, message, turn.reply);
       writeMottySessionToJar(jar, next);
-      return json({ reply: turn.reply, sessionId: next.id });
+      return json({
+        reply: turn.reply,
+        sessionId: next.id,
+        actions: turn.actions,
+      });
     } catch {
       const fallback =
         locale === "en"
@@ -147,7 +158,12 @@ export function createMottyChatHandler(options: CreateMottyChatHandlerOptions) {
           : "No pude responder ahora. Intenta de nuevo en un momento.";
       const next = appendTurn(session, message, fallback);
       writeMottySessionToJar(jar, next);
-      return json({ reply: fallback, sessionId: next.id, degraded: true });
+      return json({
+        reply: fallback,
+        sessionId: next.id,
+        actions: [],
+        degraded: true,
+      });
     }
   };
 }

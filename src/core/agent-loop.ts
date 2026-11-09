@@ -7,7 +7,13 @@ import {
   createChatCompletion,
   type ProviderMessage,
 } from "./provider.js";
-import type { MottyLearningContext, MottyLocale, MottySession } from "./types.js";
+import type {
+  MottyAction,
+  MottyLearningContext,
+  MottyLocale,
+  MottySession,
+} from "./types.js";
+import { isMottyAction } from "./payments.js";
 import {
   DEFAULT_ENABLED_TOOLS,
   enabledToolSchemas,
@@ -33,7 +39,7 @@ export type RunMottyTurnInput = {
 
 export async function runMottyTurn(
   input: RunMottyTurnInput,
-): Promise<{ session: MottySession; reply: string }> {
+): Promise<{ session: MottySession; reply: string; actions: MottyAction[] }> {
   const {
     session,
     userMessage,
@@ -43,6 +49,7 @@ export async function runMottyTurn(
     learningContext = null,
   } = input;
   const { maxToolRounds } = mottyConfig();
+  const actions: MottyAction[] = [];
 
   // Never allow injecting another user's context into this turn.
   const safeLearning =
@@ -60,7 +67,7 @@ export async function runMottyTurn(
           safeLearning,
           input.fallbackCopy,
         );
-    return { session, reply };
+    return { session, reply, actions: [] };
   }
 
   const messages: ProviderMessage[] = [
@@ -91,7 +98,7 @@ export async function runMottyTurn(
       const reply =
         (message.content ?? "").trim() ||
         fallbackCopy(session.locale, input.fallbackCopy);
-      return { session: working, reply };
+      return { session: working, reply, actions };
     }
 
     messages.push({
@@ -118,6 +125,10 @@ export async function runMottyTurn(
       );
       working = executed.session;
 
+      if (executed.result.ok && isMottyAction(executed.result.data)) {
+        actions.push(executed.result.data);
+      }
+
       messages.push({
         role: "tool",
         tool_call_id: call.id,
@@ -140,7 +151,7 @@ export async function runMottyTurn(
   const reply =
     (last.message.content ?? "").trim() ||
     fallbackCopy(session.locale, input.fallbackCopy);
-  return { session: working, reply };
+  return { session: working, reply, actions };
 }
 
 async function defaultGroundedFallback(

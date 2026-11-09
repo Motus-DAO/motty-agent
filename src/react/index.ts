@@ -5,3 +5,7 @@ export {
   type MottyWidgetCopy,
   type MottyWidgetProps,
 } from "./MottyWidget.js";
+export {
+  MottyActionCard,
+  type MottyActionCardProps,
+} from "./MottyActionCard.js";

@@ -46,6 +46,15 @@ export {
 } from "./core/provider.js";
 
 export { getHandoffAdapter, type HandoffAdapter, type HandoffKind } from "./core/handoff.js";
+export {
+  configureMottyPayments,
+  getMottyPaymentsAdapter,
+  isMottyAction,
+  type MottyPaymentsAdapter,
+  type MottyPaymentOutcome,
+  type MottyProductInput,
+  type MottyTransferInput,
+} from "./core/payments.js";
 export { getOffer, recommendOffer } from "./core/offers.js";
 export {
   getPublicMottyRuntime,
@@ -62,6 +71,7 @@ export type {
   MottyAudience,
   MottyOffer,
   MottyLearningContext,
+  MottyAction,
   ToolResult,
 } from "./core/types.js";
 
@@ -70,10 +80,16 @@ export {
   DEFAULT_ENABLED_TOOLS,
   enabledToolSchemas,
   executeMottyTool,
+  PAYMENT_ENABLED_TOOLS,
   type MottyToolName,
 } from "./tools/index.js";
+export {
+  PAYMENT_TOOL_NAMES,
+  type PaymentToolName,
+} from "./tools/payments.js";
 
 export {
   publicEcosystemPrompt,
   hubCompanionPrompt,
+  paymentsPrompt,
 } from "./presets/prompts.js";

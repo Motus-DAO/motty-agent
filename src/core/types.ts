@@ -50,3 +50,30 @@ export type MottyOffer = {
   labelEs: string;
   labelEn: string;
 };
+
+
+export type MottyAction =
+  | {
+      kind: "transfer";
+      toName: string;
+      toAddress: string;
+      amount: string;
+      token: string;
+      link?: string;
+    }
+  | {
+      kind: "escrow";
+      payPath: string;
+      escrowId?: string;
+      sessionId?: string;
+      amountWmxn: string;
+      startsAt?: string | null;
+      psmName?: string | null;
+    }
+  | {
+      kind: "stripe";
+      name: string;
+      amountMxn: string;
+      url: string;
+      interval?: string;
+    };

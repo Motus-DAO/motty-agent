@@ -2,7 +2,7 @@
   "name": "@motusdao/motty",
   "version": "0.1.0",
   "description": "Reusable Motty agent — lightweight MCP knowledge guide with optional funnel tools, signed sessions, and auth/progress adapters.",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "private": false,
   "type": "module",
   "main": "./dist/index.js",
@@ -20,6 +20,10 @@
       "types": "./dist/next/index.d.ts",
       "import": "./dist/next/index.js"
     },
+    "./mock": {
+      "types": "./dist/adapters/mock.d.ts",
+      "import": "./dist/adapters/mock.js"
+    },
     "./styles.css": "./src/react/motty.css"
   },
   "files": [
@@ -33,7 +37,7 @@
     "build": "tsc -p tsconfig.json",
     "prepare": "npm run build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "tsx --test src/core/namespaces.test.ts"
+    "test": "tsx --test src/core/namespaces.test.ts src/core/payments.test.ts"
   },
   "peerDependencies": {
     "next": ">=14",

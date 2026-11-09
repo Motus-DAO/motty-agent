@@ -149,3 +149,89 @@ npm test
 ## Sources
 
 Canonical product notes: `LandingMotus/docs/MOTTY.md`.
+
+
+---
+
+## Payments, booking and in-chat actions
+
+The SDK ships **10 payment/booking tools** on top of the knowledge/funnel tools. They are opt-in and require a host adapter:
+
+| Tool | What it does |
+| --- | --- |
+| `getMyUpcomingSession` | Patient's next session, or a PSM's agenda |
+| `quoteTherapyInWmxn` | Therapy quote in wMXN |
+| `getMyWalletBalance` | wMXN / USDT / CELO balances |
+| `getMyPaymentStatus` | Escrow status for a session |
+| `createTherapyEscrowForMySession` | Prepare the deposit link |
+| `getMyRipioRampLink` | Ripio on-ramp link |
+| `prepareTransfer` | `.motus`, therapist, confirmed Hub user or `0x` |
+| `getMyTherapistAvailability` | Available slots |
+| `bookTherapySession` | Book the chosen slot + escrow |
+| `createProductPayment` | Membership/course, Stripe or crypto |
+
+### Host adapter
+
+```ts
+import { configureMottyPayments, type MottyPaymentsAdapter } from "@motusdao/motty";
+
+const payments: MottyPaymentsAdapter = {
+  async getUpcomingSession(userId) { /* read your DB */ },
+  async quoteTherapy(userId) { /* your price/FX */ },
+  async getWalletSnapshot(userId) { /* your chain */ },
+  async getPaymentStatus(userId, sessionId) { /* your escrow */ },
+  async createEscrow(userId, sessionId) { /* prepare only */ },
+  async getRampLink(userId, amount) { /* Ripio link */ },
+  async getTherapistAvailability(userId) { /* slots */ },
+  async bookTherapySession(userId, slotId) { /* session + escrow */ },
+  async prepareTransfer(userId, input) { /* resolve recipient */ },
+  async createProductPayment(userId, input) { /* Stripe/crypto */ },
+};
+
+configureMottyPayments(payments);
+```
+
+Each method returns `{ ok: true, data }` or `{ ok: false, error }`. If `data.kind` is `transfer`, `escrow` or `stripe`, the SDK includes it in the turn's `actions` array and the widget renders an action card.
+
+### Next.js handler
+
+```ts
+import { createMottyChatHandler } from "@motusdao/motty/next";
+import {
+  DEFAULT_ENABLED_TOOLS,
+  PAYMENT_ENABLED_TOOLS,
+  paymentsPrompt,
+} from "@motusdao/motty";
+import { createMockPaymentsAdapter } from "@motusdao/motty/mock";
+
+const handler = createMottyChatHandler({
+  enabledTools: [...DEFAULT_ENABLED_TOOLS, ...PAYMENT_ENABLED_TOOLS],
+  systemPrompt: (locale) => paymentsPrompt(locale),
+  payments: createMockPaymentsAdapter(), // replace with your adapter
+  getCookieJar: async () => cookies(),
+});
+```
+
+### Widget
+
+```tsx
+<MottyWidget
+  copy={copy}
+  onSignAction={async (action) => {
+    // transfer: send wMXN/USDT/CELO
+    // escrow: approve + deposit
+    // stripe: redirect to action.url
+  }}
+/>
+```
+
+The SDK never holds keys, signs, or invents addresses/prices/slots. The host adapter resolves everything; the user signs in the wallet.
+
+### Demo without infrastructure
+
+```ts
+import { createMockPaymentsAdapter } from "@motusdao/motty/mock";
+configureMottyPayments(createMockPaymentsAdapter());
+```
+
+The mock returns deterministic sessions, slots, a transfer, an escrow and a Stripe/crypto product so anyone can fork the repo and see the flow end to end.

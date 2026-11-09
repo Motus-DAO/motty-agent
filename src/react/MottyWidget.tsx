@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Loader2, Send, X } from "lucide-react";
-import type { MottyLocale, MottyMessage } from "../core/types.js";
+import type { MottyAction, MottyLocale, MottyMessage } from "../core/types.js";
 import { MottyAvatar } from "./MottyAvatar.js";
 import { MottyMarkdown } from "./MottyMarkdown.js";
+import { MottyActionCard } from "./MottyActionCard.js";
 
 const REVEAL_MS = 4500;
 const REVEAL_SCROLL_RATIO = 0.7;
@@ -38,10 +39,12 @@ export type MottyWidgetProps = {
   chatPath?: string;
   pagePath?: string | null;
   onOpen?: () => void;
+  /** Host signs the in-chat action (WaaP / wallet). */
+  onSignAction?: (action: MottyAction) => Promise<void> | void;
   className?: string;
 };
 
-type ChatLine = MottyMessage;
+type ChatLine = MottyMessage & { actions?: MottyAction[] };
 
 export function MottyWidget({
   locale = "es",
@@ -52,6 +55,7 @@ export function MottyWidget({
   chatPath = "/api/motty/chat",
   pagePath = null,
   onOpen,
+  onSignAction,
   className = "",
 }: MottyWidgetProps) {
   const [revealed, setRevealed] = useState(!delayedReveal);
@@ -125,11 +129,18 @@ export function MottyWidget({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message, locale, pagePath }),
       });
-      const json = (await response.json()) as { reply?: string; error?: string };
+      const json = (await response.json()) as {
+        reply?: string;
+        error?: string;
+        actions?: MottyAction[];
+      };
       const reply =
         json.reply?.trim() ||
         (response.status === 429 ? copy.rateLimit : copy.error);
-      setLines((current) => [...current, { role: "assistant", content: reply }]);
+      setLines((current) => [
+        ...current,
+        { role: "assistant", content: reply, actions: json.actions },
+      ]);
     } catch {
       setLines((current) => [
         ...current,
@@ -138,7 +149,7 @@ export function MottyWidget({
     } finally {
       setPending(false);
     }
-  }, [input, pending, locale, chatPath, pagePath, copy.rateLimit, copy.error]);
+  }, [input, pending, locale, chatPath, pagePath, copy.rateLimit, copy.error, onSignAction]);
 
   if (!ready || !revealed) return null;
 
@@ -233,6 +244,13 @@ export function MottyWidget({
                   style={{ color: chrome.text }}
                 >
                   <MottyMarkdown>{line.content}</MottyMarkdown>
+                  {line.actions?.map((action, actionIndex) => (
+                    <MottyActionCard
+                      key={`${index}-${actionIndex}`}
+                      action={action}
+                      onSign={onSignAction}
+                    />
+                  ))}
                 </div>
               ),
             )}

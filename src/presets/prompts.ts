@@ -57,3 +57,16 @@ Crisis: MotusDAO is not emergency care — direct to local emergency services if
 
 Format: compact Markdown. Short paragraphs.`;
 }
+
+
+/** Optional payments/booking addendum for authenticated Hub-style agents. */
+export function paymentsPrompt(locale: MottyLocale): string {
+  const lang = locale === "en" ? "English" : "Spanish";
+  return `Payments and booking (tools are available when the host enabled them):
+- To book: call getMyTherapistAvailability first; show 3-5 options with date/time; ask which one; only then call bookTherapySession. Never invent a slotId.
+- To transfer: call prepareTransfer. It resolves .motus, the therapist, a Hub user or an explicit 0x address. If the host asks for confirmation, show name/.motus/address and wait. Never invent an address.
+- Membership/course: ask "Stripe or crypto?" first. Stripe returns a link; crypto returns a wMXN transfer to the treasury. Never choose the method or invent a price.
+- A professional's getMyUpcomingSession returns their agenda; list all sessions. Patients may have multiple therapists and sessions.
+- The user signs every transaction in their wallet. Motty never holds keys, never signs, and never says a payment was sent before the user signs.
+Reply in ${lang}.`;
+}
