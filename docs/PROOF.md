@@ -83,8 +83,8 @@ Release split: **9.0 wMXN** to the professional and **1.0 wMXN** to treasury.
   retagged retroactively.
 - Metadata: `https://app.motusdao.org/agent.json`.
 - Attribution code `celo_0ee3486819c5` is appended to the Hub's Celo
-  transactions. The first tagged 1 wMXN WaaP tx is
-  `0x9d0ad535…74a22` (prefix/suffix; full hash in Celoscan).
+  transactions. The patient's deposits are signed from their WaaP session and
+  carry the tag: 1 wMXN `0x4afe8bfc…28cd`, 10 wMXN `0x69b8435b…4063`.
 - `attributionSuffix()` in [`src/chain/attribution.ts`](../src/chain/attribution.ts)
   returns the ERC-8021 data suffix for host transactions.
 
@@ -105,8 +105,12 @@ checked for the tag (`63656c6f5f306565333438363831396335`):
 
 ## Ripio ramp
 
-- 50 wMXN bought from the Ripio on-ramp on iPhone; tx
-  `0xf02132ff9a51…b379e2` (prefix/suffix; full hash in Celoscan).
+- 50 wMXN bought from the Ripio on-ramp on iPhone. The wMXN landed on Celo
+  mainnet and the patient wallet was funded in verifiable transfers: 40 wMXN
+  `0x37882fe70cb2f0e2fc531b0cf9115095867ef4d934e187892a7c50d0a060d834` (block
+  `82276323`) and 23 wMXN
+  `0xabeaf84ac09b625fe106bbc3163cc1725a5346d962a97d5f53e2a4eaa4e960e9` (block
+  `82313149`). The Ripio purchase receipt itself is off-chain.
 - The SDK exposes `getMyRipioRampLink` through the payments adapter.
 
 ## Verify locally

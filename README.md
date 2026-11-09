@@ -122,8 +122,9 @@ Escrow id `0xa43437802d1594d9661ab01d36be0ccf7c3a2eca08bde5ac8949ebe1d2b5c05d`
 
 ### Ripio ramp · ERC-8004 · ERC-8021
 
-- **On-ramp:** 50 wMXN bought through Ripio on an iPhone, arriving on Celo
-  mainnet as wMXN (tx `0xf02132ff9a51…b379e2`). The SDK exposes
+- **On-ramp:** 50 wMXN bought through Ripio on an iPhone. The wMXN landed on
+  Celo mainnet and was funded into the patient wallet in verifiable transfers
+  (40 wMXN `0x37882fe7…0d834`, 23 wMXN `0xabeaf84a…60e9`). The SDK exposes
   `getMyRipioRampLink` so the agent can hand a prefilled ramp URL to the patient.
 - **Identity:** agent **10066**, registered via ERC-8004 **with the attribution
   tag inside the calldata** — tx
