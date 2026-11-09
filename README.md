@@ -59,6 +59,23 @@ a typed action that the interface renders as an in-chat card.
 funnel tools), `PD-MD-LandingA` (Academia funnel) and `motusdao-hub`
 (authenticated companion + Prisma progress).*
 
+### Protocol surfaces: MCP and A2A
+
+The same tool layer is reachable without the chat UI:
+
+| Surface | Command | What it exposes |
+| --- | --- | --- |
+| **MCP** (stdio) | `npm run mcp` | `tools/list` + `tools/call` over the 11 tools — Claude Desktop, Cursor, any MCP client |
+| **A2A** (HTTP) | `npm run a2a` | `/.well-known/agent-card.json` + JSON-RPC `message/send` with `/tool <name> [json]` |
+
+```bash
+printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"quoteTherapyInWmxn","arguments":{}}}' | npm run mcp
+# → {"ok":true,"tool":"quoteTherapyInWmxn","data":{"usd":45,"mxn":832.5,...}}
+```
+
+Details: [`docs/MCP.md`](docs/MCP.md) · [`docs/A2A.md`](docs/A2A.md). Both run
+with the mock adapter by default — no database, no chain, no keys.
+
 ## Agents on Open Rails — Stable Agents: LatAm (submission)
 
 **Motty Pay** books, charges and settles therapy in Mexican pesos on Celo. The
