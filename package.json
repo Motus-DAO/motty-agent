@@ -1,6 +1,6 @@
 {
   "name": "@motusdao/motty",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Reusable Motty agent \u2014 lightweight MCP knowledge guide with optional funnel tools, signed sessions, and auth/progress adapters.",
   "license": "MIT",
   "private": false,
@@ -37,7 +37,7 @@
     "build": "tsc -p tsconfig.json",
     "prepare": "npm run build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "tsx --test src/core/namespaces.test.ts src/core/payments.test.ts",
+    "test": "tsx --test src/core/namespaces.test.ts src/core/payments.test.ts src/mcp/protocol.test.ts",
     "mcp": "node dist/mcp/server.js",
     "a2a": "node dist/a2a/server.js"
   },

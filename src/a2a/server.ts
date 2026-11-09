@@ -25,6 +25,7 @@ import {
   type MottyToolName,
 } from "../tools/index.js";
 import { MOTTY_VERSION } from "../core/version.js";
+import { handleMcpHttp } from "../mcp/http.js";
 
 const PORT = Number(process.env.PORT || 8080);
 const PUBLIC_URL = process.env.MOTTY_PUBLIC_URL || `http://localhost:${PORT}/`;
@@ -135,6 +136,8 @@ async function readBody(req: IncomingMessage): Promise<string> {
 }
 
 const server = createServer(async (req, res) => {
+  if (await handleMcpHttp(req, res)) return;
+
   if (req.method === "GET" && req.url === "/.well-known/agent-card.json") {
     return sendJson(res, 200, CARD);
   }

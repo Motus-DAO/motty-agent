@@ -9,7 +9,11 @@ Desktop, Cursor, an orchestrator, or your own runtime.
 ```bash
 npm run build
 npm run mcp        # stdio, newline-delimited JSON-RPC 2.0
+npm run a2a        # the same tools over HTTP at POST /mcp
 ```
+
+Two transports, one handler (`src/mcp/protocol.ts`), so both expose exactly the
+same tools.
 
 The server speaks MCP `2024-11-05` over **stdio**:
 
@@ -19,6 +23,27 @@ The server speaks MCP `2024-11-05` over **stdio**:
 | `tools/list` | 11 tools with JSON Schema inputs |
 | `tools/call` | executes one tool, returns the `ToolResult` as text |
 | `ping` | liveness |
+
+## HTTP transport
+
+`npm run a2a` serves MCP on the same port as the A2A surface:
+
+```bash
+curl -s -X POST http://localhost:8080/mcp \
+  -H 'content-type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"quoteTherapyInWmxn","arguments":{}}}'
+```
+
+| Path | Method | Behaviour |
+| --- | --- | --- |
+| `/mcp` | `POST` | one JSON-RPC request per call, JSON response |
+| `/mcp` | `GET` | `405` — no SSE stream |
+| `/mcp` | `OPTIONS` | CORS preflight (`204`) |
+
+Live: <https://motty.motusdao.org/mcp>
+
+Stateless by design: no session id, so any number of replicas can sit behind a
+load balancer.
 
 ## Client config
 

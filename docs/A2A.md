@@ -76,6 +76,7 @@ Put a TLS reverse proxy in front and point the agent card `url` at it.
 | Endpoint | <https://motty.motusdao.org/> |
 | Card | <https://motty.motusdao.org/.well-known/agent-card.json> |
 | Health | <https://motty.motusdao.org/health> |
+| MCP over HTTP | <https://motty.motusdao.org/mcp> (same container) |
 | TLS | Let's Encrypt, issued by Caddy (auto-renew) |
 | Container | `motty-a2a` (node:20-alpine, `--restart unless-stopped`, network `reverse-proxy_default`, no published port) |
 | Reverse proxy | `motty.motusdao.org { encode gzip; reverse_proxy motty-a2a:8080 }` in `/home/gerry/apps/reverse-proxy/Caddyfile` |

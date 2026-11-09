@@ -15,6 +15,10 @@ Paste-ready answers for the Loops House form. Everything here is backed by
 | ERC-8004 agentId | `10066` (registered with the tag; first identity `10053` predates it) |
 | ERC-8021 tag | `celo_0ee3486819c5` |
 | Contract | `0xFd9F38AD6143B018e60F86B5304C53223FBf2dBC` (Celo mainnet) |
+| A2A endpoint | <https://motty.motusdao.org/> |
+| Agent card | <https://motty.motusdao.org/.well-known/agent-card.json> |
+| MCP (HTTP) | <https://motty.motusdao.org/mcp> |
+| npm | `@motusdao/motty@0.1.1` |
 
 ## One-liner
 
