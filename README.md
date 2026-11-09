@@ -193,33 +193,116 @@ Escrow id `0xa43437802d1594d9661ab01d36be0ccf7c3a2eca08bde5ac8949ebe1d2b5c05d`
 | --- | --- |
 | Mainnet, real wFIAT | Full escrow lifecycle on Celo mainnet with wMXN (18 decimals), twice, plus three more escrows |
 | Real use of wMXN + Celo stack | wMXN is the unit of account *and* settlement; ERC-8004 identity; ERC-8021 on every tx; gas in CELO |
-| Agent autonomy | `agent:tick` worker reads escrow state and sends `settle` + `release` itself; runs on a 2-minute cron, no human click |
+| Agent autonomy | The professional signs `settle`; the `agent:tick` worker then releases the 90/10 on a 2-minute cron, no human click |
 | UX for a real person | Ripio ramp on mobile → `/pagar/<id>` status page → history with hashes and receipts → `/finanzas/actividad` |
 | LatAm impact | Therapy priced, paid and settled in pesos; the psychologist is paid in wMXN, never converted to USD |
 
-### Autonomy
+### Autonomy: who signs what
 
-The flow has two different signers, on purpose:
+| Step | Signed by | Can the agent do it? |
+| --- | --- | --- |
+| `deposit` | the patient's wallet | no — it needs the patient's key |
+| `settle` | the professional | no — the contract requires `msg.sender == payee` |
+| `release` | the settlement worker | yes — and, by design, anyone could |
 
-1. **The professional authorises.** After the session, they sign `settle` from
-   their own wallet (`0xd056…Ba3b` in the transactions above) — the agent cannot
-   mark a session as delivered on their behalf.
-2. **The agent releases.** Once the contract allows it (`startsAt` reached,
-   challenge window elapsed, session settled), the settlement worker
-   `0xb3C5…d47B` calls `release`, which pays the 90/10 split. No human clicks
-   anything at this step.
+`release` is **permissionless** on purpose: once the professional has settled and
+the challenge window has passed, whoever calls it just moves the 90/10 split. The
+agent is not a privileged party; it is the reliable caller that pays the gas so
+nobody has to click.
 
-That worker runs on the Hub as `npm run agent:tick` behind a two-minute cron; the
-chain client it uses is [`src/chain/escrow.ts`](src/chain/escrow.ts) here.
+#### How the worker decides
+
+1. Replays `SessionCreated` from the deploy block to collect candidate escrow ids
+   (bounded by `ESCROW_SCAN_BLOCKS`).
+2. Reads `sessions(id)` for each one.
+3. Skips anything whose status is not `Settled`.
+4. Skips while `block.timestamp < settledAt + challengeWindow`.
+5. Sends `release(id)` from the settlement wallet and waits for the receipt.
+6. Caps at 10 releases per tick; a per-session `try/catch` records the error and
+   the loop keeps going.
+
+It runs on the Hub as `npm run agent:tick` behind a two-minute cron and imports
+[`src/chain/escrow.ts`](src/chain/escrow.ts) for the ABI and the reader.
+
+#### Guards, as they exist in the deployed contract
+
+- `release`: `InvalidStatus` unless the session is `Settled`; `TooEarly` before
+  `settledAt + challengeWindow`; `nonReentrant`; **no `onlyOperator`** — anyone
+  may call it.
+- `settle`: `InvalidStatus` unless `Funded`, `NotPayee` unless the caller is the
+  payee, `NotStarted` before `startsAt`.
+- A second `release` reverts (`InvalidStatus`), so re-running the worker is safe:
+  the funds move once and the duplicate transaction fails.
+
+#### Reproduce the decision (read-only, existing helpers)
+
+```ts
+import { readEscrow, THERAPY_ESCROW_ABI } from "@motusdao/motty";
+
+const escrow = await readEscrow(id);
+const due =
+  escrow?.statusLabel === "Settled" &&
+  Math.floor(Date.now() / 1000) >= escrow.settledAt + escrow.challengeWindow;
+
+// if (due) walletClient.writeContract({
+//   address: THERAPY_ESCROW_ADDRESS,
+//   abi: THERAPY_ESCROW_ABI,
+//   functionName: "release",
+//   args: [id],
+// });
+```
+
+#### What is tested, and what is not
+
+| Area | Status |
+| --- | --- |
+| SDK tools and actions | `npm test` — 10 tests (tools, action shape, MCP protocol) |
+| Contract guards | Verified against the deployed ABI and by the production transactions; **no automated contract tests in this repo** |
+| Idempotency | Structural: `release` flips the status to `Released`, so the next tick skips it, and a duplicate transaction reverts |
+| Error handling | Per-session `try/catch`; failures are collected, never abort the tick |
+| Not covered | No local-fork or property-based tests; the challenge window is `0` in every production run, so that branch is untested in practice |
+
+## The patient path, end to end
+
+| # | Step | What the patient sees | Evidence |
+| --- | --- | --- | --- |
+| 1 | Buys wMXN on Ripio's ramp, on a phone | Ripio's flow, then wMXN in the wallet | 40 wMXN `0x37882fe7…0d834`, 23 wMXN `0xabeaf84a…60e9` |
+| 2 | Books in `/psicoterapia` | Therapist, slot, "Pagar con wMXN" | `createSession` `0x742fc9f2…4495` |
+| 3 | Pays on `/pagar/<id>` | Amount, countdown, "Aprobar y depositar" in WaaP | `deposit` `0x4afe8bfc…28cd` |
+| 4 | Professional confirms | "Sesión confirmada" | `settle` `0x1395ee7c…cb07` |
+| 5 | The worker releases | "Pago liberado" with the 90/10 split | `release` `0x58dc83f6…2853` |
+| 6 | Receipt | `/pagos/historial` and `/finanzas/actividad` show the hash and the split | same transaction |
+
+It is built from pieces that already ship: `MottyWidget` for the chat,
+`MottyActionCard` for the typed action, `/pagar/[id]` for the signature page, and
+the Hub history views for the receipt.
+
+### 60-second demo script
+
+| Seconds | Shot |
+| --- | --- |
+| 0–8 | Phone: the Ripio ramp, wMXN lands on Celo |
+| 8–20 | `/psicoterapia` → therapist → slot → "Pagar con wMXN" |
+| 20–33 | `/pagar/<id>`: amount and escrow id, then "Aprobar y depositar" in WaaP |
+| 33–40 | Status flips to funded; the professional screen confirms the session |
+| 40–50 | The worker releases; the page shows 0.9 / 0.1 |
+| 50–60 | Celoscan: the four hashes and the `celo_0ee3486819c5` suffix |
+
+### What is simulated
+
+- The MCP and A2A endpoints run the **mock adapter**: demo data, no database, no
+  signing.
+- The transactions are real, the wallets are ours — **no independent patient
+  yet**.
+- The script assumes a session that starts within minutes; in production a slot
+  is 50 minutes long and starts when the professional publishes it.
 
 **Scope honesty:** the volume above is our own end-to-end runs against the live
 contract — reproducible with the snippet in [Verify it yourself](#verify-it-yourself).
 Independent patient acquisition is the next milestone, not something claimed here.
 
-The public MCP and A2A endpoints run the **mock adapter**: they demonstrate the
-protocol surface and answer with demo data, they do not touch the database or
-sign anything. The product that moves real money is the Hub deployment; the
-endpoints show how another agent would plug into the same tool layer.
+The product that moves real money is the Hub deployment; the public endpoints
+show how another agent would plug into the same tool layer.
 
 ### Verify it yourself
 
