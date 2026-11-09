@@ -69,23 +69,25 @@ docker run -d --name motty-a2a --restart unless-stopped \
 
 Put a TLS reverse proxy in front and point the agent card `url` at it.
 
-## Live deployment (vps-brahma)
+## Live deployment (vps-motusdao)
 
 | Item | Value |
 | --- | --- |
-| Endpoint | <http://169.58.172.120:9088/> |
-| Card | <http://169.58.172.120:9088/.well-known/agent-card.json> |
-| Health | <http://169.58.172.120:9088/health> |
-| Container | `motty-a2a` (node:20-alpine, `--restart unless-stopped`, port 9088 → 8080) |
+| Endpoint | <https://motty.motusdao.org/> |
+| Card | <https://motty.motusdao.org/.well-known/agent-card.json> |
+| Health | <https://motty.motusdao.org/health> |
+| TLS | Let's Encrypt, issued by Caddy (auto-renew) |
+| Container | `motty-a2a` (node:20-alpine, `--restart unless-stopped`, network `reverse-proxy_default`, no published port) |
+| Reverse proxy | `motty.motusdao.org { encode gzip; reverse_proxy motty-a2a:8080 }` in `/home/gerry/apps/reverse-proxy/Caddyfile` |
 | App dir | `/home/gerry/motty` (dist + package.json bind-mounted read-only) |
 
 Redeploy after a build:
 
 ```bash
 npm run build
-tar czf - dist package.json | ssh vps-brahma 'tar xzf - -C ~/motty'
-ssh vps-brahma 'docker restart motty-a2a'
+COPYFILE_DISABLE=1 tar czf - dist package.json | ssh vps-motusdao 'tar xzf - -C ~/motty'
+ssh vps-motusdao 'docker restart motty-a2a'
 ```
 
-Still plain HTTP on a raw port: put TLS in front (the host already runs Caddy on
-80/443) and point `MOTTY_PUBLIC_URL` at the final URL.
+Rollback of the proxy: restore `Caddyfile.bak-*` next to the Caddyfile and
+`docker exec caddy caddy reload --config /etc/caddy/Caddyfile`.
