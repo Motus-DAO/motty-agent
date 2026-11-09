@@ -32,45 +32,96 @@ a tool runtime that pay people, book sessions and settle escrows in local
 stablecoins on Celo. Reference deployment: MotusDAO Hub, where patients pay
 therapists in wMXN through a 90/10 onchain escrow.
 
-## Full description
+## Full description (repo)
 
-**Motty Pay — an installable payment agent for local stablecoins on Celo.**
+**Motty Pay is a TypeScript package (`@motusdao/motty`) you mount inside your own
+product.** It ships an agent loop, a server-side tool runtime and a typed-action
+UI layer; you inject your database, chain client and wallet through adapters.
+One dependency, no separate runtime, no custodian, no key storage: the agent
+prepares a typed action (`transfer`, `escrow`, `stripe`), your interface renders
+it, and the user signs.
 
-Motty Pay is a TypeScript package (`@motusdao/motty`) you mount inside your own
-product: a chat agent plus a server-side tool runtime that talks to your
-database, your chain client and the user's wallet through adapters. One
-dependency; no separate runtime, no custodian, no key storage. The agent
-prepares typed actions — `transfer`, `escrow`, `stripe` — your interface renders
-them and the user signs.
+**It runs on four surfaces:** the in-app chat widget, a Next.js route handler,
+**MCP** over stdio and HTTP (`https://motty.motusdao.org/mcp`, `tools/list` and
+`tools/call` on the same 11 tools, for Claude Desktop, Cursor or any
+orchestrator) and **A2A** over HTTP (`https://motty.motusdao.org/`, agent card at
+`/.well-known/agent-card.json`).
 
-**Reference deployment: MotusDAO Hub.** Motty Pay is the payment agent inside
-MotusDAO Hub, a therapy platform for Latin America. It is not a separate bot or a
-back-office automation: it is a lightweight agent embedded in the product,
-mounted in the Hub shell on every page, with the tool runtime inside the same
-Next.js application. The agent runs where the money and the user already are.
-
-The agent understands the page and the user's role. A patient can say "book
-another session with my therapist"; a professional can ask "what's on my agenda?".
-Motty resolves the intent, calls the right tools, and returns either an answer or
-a typed action that the interface renders as an in-chat card.
+**Reference deployment: MotusDAO Hub**, a therapy platform for Latin America.
+The agent is embedded in the Hub shell on every page, understands the page and
+the user's role, and books, charges and settles therapy in **wMXN** through a
+90/10 escrow on Celo mainnet. A patient says "book another session with my
+therapist"; a professional asks "what's on my agenda?"; Motty resolves the
+intent, calls the tools and returns an answer or a signable card.
 
 **What it does**
 
-- **Books therapy** — fetches the therapist's real availability, shows options,
-  creates the session and its escrow.
-- **Charges and settles in wMXN** — the patient signs the deposit, the
-  professional confirms, the settlement agent releases the 90/10 split on Celo.
-- **Pays people** — "Send 1 wMXN to John" resolves a `.motus` name, a Hub display
-  name, "my therapist", or an explicit address, and confirms the human match.
-- **Pays the treasury** — memberships and Academy courses, Stripe or crypto;
-  crypto is converted to the wMXN equivalent and sent to the DAO.
-- **Uses the Ripio ramp** — returns the on-ramp link to buy wMXN with local money.
-- **Reports status** — session, escrow state, balances, payment history.
+- Books from the therapist's real availability, then creates the session and its
+  escrow.
+- Charges and settles in wMXN: the patient signs the deposit, the professional
+  confirms, the settlement agent releases the 90/10 split.
+- Pays people by `.motus` name, Hub display name, "my therapist" or an explicit
+  address, confirming the human match first.
+- Pays the DAO treasury for memberships and Academy courses, Stripe or crypto.
+- Returns the Ripio on-ramp link to buy wMXN with local money.
+- Reports session, escrow and balance status.
 
-**Why it is a real agent, not a chat wrapper.** Ten payment/booking tools run
-server-side in the host app, behind a signed session and a per-user auth check.
-The loop decides which tool to call, the tool returns either prose or a typed
-action, and the UI turns that action into a signable card.
+## Copy-paste — single field
+
+Everything below is one block; it is the version to paste when the form has a
+single description box.
+
+> **Motty Pay is a TypeScript package (`@motusdao/motty`) you mount inside your
+> own product.** It ships an agent loop, a server-side tool runtime and a
+> typed-action UI layer; you inject your database, chain client and wallet
+> through adapters. One dependency, no separate runtime, no custodian, no key
+> storage: the agent prepares a typed action (`transfer`, `escrow`, `stripe`),
+> your interface renders it, and the user signs.
+>
+> **It runs on four surfaces:** the in-app chat widget, a Next.js route handler,
+> **MCP** over stdio and HTTP (`https://motty.motusdao.org/mcp`, `tools/list` and
+> `tools/call` on the same 11 tools, for Claude Desktop, Cursor or any
+> orchestrator) and **A2A** over HTTP (`https://motty.motusdao.org/`, agent card
+> at `/.well-known/agent-card.json`).
+>
+> **Reference deployment: MotusDAO Hub**, a therapy platform for Latin America.
+> The agent is embedded in the Hub shell on every page, understands the page and
+> the user's role, and books, charges and settles therapy in **wMXN** through a
+> 90/10 escrow on Celo mainnet. A patient says "book another session with my
+> therapist"; a professional asks "what's on my agenda?"; Motty resolves the
+> intent, calls the tools and returns an answer or a signable card.
+>
+> **What it does:** books from the therapist's real availability and creates the
+> session with its escrow · charges and settles in wMXN (patient signs,
+> professional confirms, the settlement agent releases 90/10) · pays people by
+> `.motus` name, Hub display name, "my therapist" or address · pays the DAO
+> treasury for memberships and courses, Stripe or crypto · returns the Ripio
+> on-ramp link · reports session, escrow and balance status.
+>
+> **Proof, verifiable onchain:** ERC-8004 agentId **10066**, registered with the
+> ERC-8021 tag inside the calldata (`0x7a3bed75…e686`). **15 of the 17**
+> transactions touching the escrow contract carry `celo_0ee3486819c5` — the two
+> exceptions are the contract deploy and the ownership transfer. 6 sessions
+> created, **31 wMXN deposited**, **11 wMXN released** 90/10 across two complete
+> `create → deposit → settle → release` cycles.
+>
+> Install: `npm install @motusdao/motty`.
+> Repo: https://github.com/Motus-DAO/motty-agent · Product: https://app.motusdao.org
+
+### Short variant (~150 words)
+
+> Motty Pay is an installable TypeScript package (`@motusdao/motty`) that turns
+> any product into an agent that can pay. You inject your database, chain client
+> and wallet through adapters; it prepares typed actions and the user signs. It
+> runs as a chat widget, a Next.js route, MCP over stdio/HTTP and A2A over HTTP
+> (`https://motty.motusdao.org`, 11 tools, live agent card).
+>
+> Reference deployment: MotusDAO Hub, where patients book and settle therapy in
+> wMXN through a 90/10 escrow on Celo. ERC-8004 agentId 10066 registered with the
+> ERC-8021 tag in the calldata; 15 of 17 escrow transactions carry
+> `celo_0ee3486819c5`; 6 sessions, 31 wMXN deposited, 11 wMXN released.
+>
+> Repo: https://github.com/Motus-DAO/motty-agent
 
 ## Proof (Celo mainnet, 42220)
 
