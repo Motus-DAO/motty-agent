@@ -2,11 +2,138 @@
 
 Reusable **Motty** agent for MotusDAO apps: lightweight in-process guide that answers from Motus Knowledge MCP, can run a conversion funnel (lead → offer → deep-link checkout → handoff), and supports **per-person auth + learning progress** via host adapters.
 
+This build also ships the **payments layer**: Motty quotes, books and settles
+therapy sessions in **wMXN** on **Celo mainnet**, through a 90/10 escrow — a
+patient pays in pesos, a psychologist is paid in pesos, no USD round-trip and no
+custodian. Every transaction below is real and verifiable on Celoscan.
+
 Extracted from the three near-copies in:
 
 - `LandingMotus` — public ecosystem guide + funnel tools (stubbed)
 - `PD-MD-LandingA` — Academia funnel via prompt
 - `motusdao-hub` — authenticated Hub companion + Prisma progress
+
+## Agents on Open Rails — Stable Agents: LatAm (submission)
+
+**Motty Pay**: an agent that books, charges and settles therapy in Mexican pesos
+on Celo. The patient tops up with Ripio's ramp, the deposit sits in an onchain
+escrow in **wMXN**, and the agent releases 90% to the psychologist and 10% to
+the DAO treasury on its own.
+
+| What | Where |
+| --- | --- |
+| Live product | <https://app.motusdao.org> — `/pagar/<id>`, `/pagos/historial`, `/finanzas/actividad` |
+| This repo (forkable SDK) | <https://github.com/Motus-DAO/motty-agent> |
+| Agent identity (ERC-8004) | agentId **10053** · <https://8004scan.io> |
+| Attribution (ERC-8021) | `celo_0ee3486819c5` on every Celo tx |
+
+### Rails (Celo mainnet, 42220)
+
+| Piece | Address / value |
+| --- | --- |
+| wMXN (Ripio) | `0x337E7456B420bD3481e7FA61fA9850343d610d34` |
+| USDT (Celo) | `0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e` |
+| TherapyEscrow | `0xFd9F38AD6143B018e60F86B5304C53223FBf2dBC` (block `82227556`) |
+| DAO treasury | `0xf229F3Dcea3D7cd3cA5ca41C4C50135D7b37F2b9` |
+| Settlement agent | `0xb3C5EA7E583FBa073006c6C553239daC59e3d47B` |
+
+### E2E #1 — 1 wMXN therapy session, released 90/10
+
+Escrow id `0x3f92c51291a5a31b5edec0692f41b7e54f561605c6357bdb6ddd0b82a448d4cd`
+· patient `0xD7dcF535f4159C18E252fF759bA2B14A1e91a2e0`
+· professional `0xd0563BBa8E42b6ab0ECDfc1f0eA1486c5C28Ba3b`
+· `startsAt` `1794129913` · challenge window `0`
+
+| Step | Tx | Block |
+| --- | --- | --- |
+| `createSession` | `0x742fc9f206c2df76a842e2cc8cce66861b43fb8473d6090259e7421fb5d04495` | 82228557 |
+| `deposit` | `0x4afe8bfc10e32567d1ef319864625aeb6f8340f78baf0c970eda4d9a845c28cd` | 82229730 |
+| `settle` | `0x1395ee7c0243d88e8e8e3f8c80a255e4bd656bd59f6610a8000536a74d56cb07` | 82229919 |
+| `release` | `0x58dc83f65a2de9ec9672377f88c1c20682cb33046a5ed8aa7b53c0cb64422853` | 82230063 |
+
+`release` moved **0.9 wMXN** to the professional and **0.1 wMXN** to the
+treasury; the escrow ends `Released`.
+
+### E2E #2 — 10 wMXN therapy session
+
+Escrow id `0xa43437802d1594d9661ab01d36be0ccf7c3a2eca08bde5ac8949ebe1d2b5c05d`
+· amount **10 wMXN** · `startsAt` `1794177664` · challenge window `0`
+
+| Step | Tx | Block |
+| --- | --- | --- |
+| `createSession` | `0x58d93ff488e2faa8c4532123ae8f673f8f1b61aba31db463677496dc08b6aec4` | 82276848 |
+| `deposit` | `0x69b8435beaf7ef828ccc2b757345598e86fb260e3b587ebf6c35cd0132a24063` | 82277798 |
+| `settle` | `0x962546de57a5285f11450ca9accd05fcc1952113d34a229c81e7dd63a59f52df` | 82278171 |
+| `release` | `0xc158a1d6283448efde101028a067b91aebf91955883f5292ac8c585efe74fc0b` | 82278287 |
+
+`release` moved **9.0 wMXN** to the professional and **1.0 wMXN** to treasury.
+
+### More escrows on the same contract
+
+| Amount | Escrow id · create · deposit |
+| --- | --- |
+| 10 wMXN | `0xe9ef01c1a2c3cbb5cc8d2f8a377b69748fb12a24080238ea25f8e2760fee223f` · `0xbfa4766d91367425e31699d3b26412cb40a4065c6dccaa22b964b94eaea6bdb2` · `0x9ba3630cb647496577514663373d72e6584864bb30e572af0949ce31e0742ca1` |
+| 10 wMXN | `0x01f13523370c36255213b8a912e6cca6951967f1b0922ff3297067a78d401ce0` · `0x59c7c2e79fab9a5a37ba949a49e4939c1f4227b46eebd6c7a0cbe3e07dd3d7bc` · `0xcaa11d639fefe779773ca6d2ce4e7f229c5f1c9f46f114f32c4a6544727a373b` |
+| 832.5 wMXN (45 USD @ 18.5) | `0x129ef4591a9a92ff25ba40b77c5ea7e4012cd6219623b1d06d1c8a0602dd69c9` · `0x4c0980cf71213546406f73344fc6ea7c132ac1b954877f018e37c5f85cc5e8b2` |
+
+### Ripio ramp · ERC-8004 · ERC-8021
+
+- **On-ramp:** 50 wMXN bought through Ripio on an iPhone, arriving on Celo
+  mainnet as wMXN (tx `0xf02132ff9a51…b379e2`). The SDK exposes
+  `getMyRipioRampLink` so the agent can hand a prefilled ramp URL to the patient.
+- **Identity:** agent **10053** registered via ERC-8004 — tx
+  `0x2d01e5910bbccdb423d3c47c9b3fbbe44101a6ca167378343def72232cc713ac`,
+  metadata at <https://app.motusdao.org/agent.json>.
+- **Attribution:** `celo_0ee3486819c5` appended to the calldata of every Celo tx
+  (`attributionSuffix()`); first tagged WaaP transfer `0x9d0ad535…74a22`.
+  `hasAttribution()` verifies a tx carries it.
+
+### Why it scores (LatAm rubric)
+
+| Criterion | How |
+| --- | --- |
+| Mainnet, real wFIAT | Full escrow lifecycle on Celo mainnet with wMXN (18 decimals), twice, plus three more escrows |
+| Real use of wMXN + Celo stack | wMXN is the unit of account *and* settlement; ERC-8004 identity; ERC-8021 on every tx; gas in CELO |
+| Agent autonomy | `agent:tick` worker reads escrow state and sends `settle` + `release` itself; runs on a 2-minute cron, no human click |
+| UX for a real person | Ripio ramp on mobile → `/pagar/<id>` status page → history with hashes and receipts → `/finanzas/actividad` |
+| LatAm impact | Therapy priced, paid and settled in pesos; the psychologist is paid in wMXN, never converted to USD |
+
+### Autonomy
+
+The release transactions above were sent by the settlement agent
+`0xb3C5…d47B`, not by a person pressing a button in a dashboard: the worker
+scans escrows, checks `startsAt` + challenge window, then calls `settle` and
+`release`. It runs on the Hub as `npm run agent:tick` behind a 2-minute cron;
+the chain client it uses is [`src/chain/escrow.ts`](src/chain/escrow.ts) here.
+
+**Scope honesty:** the volume above is our own end-to-end runs against the live
+contract — reproducible with the snippet in [Verify it yourself](#verify-it-yourself).
+Independent patient acquisition is the next milestone, not something claimed here.
+
+### Verify it yourself
+
+No API key, no database: read the contract straight from Celo mainnet.
+
+```bash
+npm install
+npm test    # 6/6 — payments tools + action cards
+```
+
+```ts
+import { readEscrow, splitEscrow } from "@motusdao/motty";
+
+const escrow = await readEscrow(
+  "0x3f92c51291a5a31b5edec0692f41b7e54f561605c6357bdb6ddd0b82a448d4cd",
+);
+// status: 5 (Released), amount: 1e18n, patient 0xD7dc…, payee 0xd056…
+
+splitEscrow(1_000_000_000_000_000_000n);
+// { payee: 900000000000000000n, fee: 100000000000000000n }
+```
+
+Cross-check any hash on Celoscan:
+`https://celoscan.io/tx/<hash>` — the ERC-8021 suffix
+`celo_0ee3486819c5` is in the calldata.
 
 ## What you get
 
@@ -155,10 +282,12 @@ Canonical product notes: `LandingMotus/docs/MOTTY.md`.
 
 ## On-chain proof
 
-The real Celo mainnet E2E — contracts, escrow ids, full tx hashes, 90/10
-amounts, ERC-8004 identity, ERC-8021 attribution and Ripio ramp — lives in
-[`docs/PROOF.md`](docs/PROOF.md). The escrow source is in
-[`contracts/TherapyEscrow.sol`](contracts/TherapyEscrow.sol).
+The full evidence is above, in
+[Agents on Open Rails — submission](#agents-on-open-rails--stable-agents-latam-submission):
+rails, escrow ids, every tx hash, 90/10 splits, ERC-8004 identity, ERC-8021
+attribution and the Ripio ramp. The extended ledger (more escrows, blocks,
+ownership transfer) is in [`docs/PROOF.md`](docs/PROOF.md); the contract source
+is [`contracts/TherapyEscrow.sol`](contracts/TherapyEscrow.sol).
 
 ## Payments, booking and in-chat actions
 
