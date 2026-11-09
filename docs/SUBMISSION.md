@@ -45,7 +45,8 @@ it, and the user signs.
 **MCP** over stdio and HTTP (`https://motty.motusdao.org/mcp`, `tools/list` and
 `tools/call` on the same 11 tools, for Claude Desktop, Cursor or any
 orchestrator) and **A2A** over HTTP (`https://motty.motusdao.org/`, agent card at
-`/.well-known/agent-card.json`).
+`/.well-known/agent-card.json`). The public endpoints answer with the bundled
+demo adapter; the money moves in the Hub deployment.
 
 **Reference deployment: MotusDAO Hub**, a therapy platform for Latin America.
 The agent is embedded in the Hub shell on every page, understands the page and
@@ -66,6 +67,11 @@ intent, calls the tools and returns an answer or a signable card.
 - Returns the Ripio on-ramp link to buy wMXN with local money.
 - Reports session, escrow and balance status.
 
+**The settlement step runs by itself.** A worker on a two-minute cron reads the
+escrow and calls `release()` once the professional has settled and the challenge
+window passed — 713 ticks logged in production, and the 10 wMXN cycle was
+released by the worker, not by hand.
+
 ## Copy-paste — single field
 
 Everything below is one block; it is the version to paste when the form has a
@@ -82,7 +88,8 @@ single description box.
 > **MCP** over stdio and HTTP (`https://motty.motusdao.org/mcp`, `tools/list` and
 > `tools/call` on the same 11 tools, for Claude Desktop, Cursor or any
 > orchestrator) and **A2A** over HTTP (`https://motty.motusdao.org/`, agent card
-> at `/.well-known/agent-card.json`).
+> at `/.well-known/agent-card.json`). The public endpoints answer with the
+> bundled demo adapter; the money moves in the Hub deployment.
 >
 > **Reference deployment: MotusDAO Hub**, a therapy platform for Latin America.
 > The agent is embedded in the Hub shell on every page, understands the page and
@@ -98,6 +105,11 @@ single description box.
 > treasury for memberships and courses, Stripe or crypto · returns the Ripio
 > on-ramp link · reports session, escrow and balance status.
 >
+> **The settlement step runs by itself.** A worker on a two-minute cron reads the
+> escrow and calls `release()` once the professional has settled and the
+> challenge window passed — 713 ticks logged in production, and the 10 wMXN cycle
+> above was released by the worker, not by hand.
+>
 > **Proof, verifiable onchain:** ERC-8004 agentId **10066**, registered with the
 > ERC-8021 tag inside the calldata (`0x7a3bed75…e686`). **15 of the 17**
 > transactions touching the escrow contract carry `celo_0ee3486819c5` — the two
@@ -105,8 +117,8 @@ single description box.
 > created, **31 wMXN deposited**, **11 wMXN released** 90/10 across two complete
 > `create → deposit → settle → release` cycles.
 >
-> Install: `npm install @motusdao/motty`.
-> Repo: https://github.com/Motus-DAO/motty-agent · Product: https://app.motusdao.org
+> Install: `npm install @motusdao/motty` · Repo:
+> https://github.com/Motus-DAO/motty-agent · Product: https://app.motusdao.org
 
 ### Short variant (~150 words)
 
