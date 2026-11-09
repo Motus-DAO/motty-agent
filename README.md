@@ -1,24 +1,68 @@
-# @motusdao/motty
+# Motty Pay
 
-Reusable **Motty** agent for MotusDAO apps: lightweight in-process guide that answers from Motus Knowledge MCP, can run a conversion funnel (lead → offer → deep-link checkout → handoff), and supports **per-person auth + learning progress** via host adapters.
+**An installable payment agent for local stablecoins on Celo.** `@motusdao/motty`
+is a small TypeScript package you mount inside your own product: the agent talks
+to your database, your chain client and your user's wallet through adapters, so
+it runs where the money and the user already are — no separate agent
+infrastructure, no custodian, no key storage.
 
-This build also ships the **payments layer**: Motty quotes, books and settles
-therapy sessions in **wMXN** on **Celo mainnet**, through a 90/10 escrow — a
-patient pays in pesos, a psychologist is paid in pesos, no USD round-trip and no
-custodian. Every transaction below is real and verifiable on Celoscan.
+```bash
+npm install github:Motus-DAO/motty-agent
+```
 
-Extracted from the three near-copies in:
+```ts
+import { createMottyChatHandler } from '@motusdao/motty/next'
+import { configureMottyPayments } from '@motusdao/motty'
 
-- `LandingMotus` — public ecosystem guide + funnel tools (stubbed)
-- `PD-MD-LandingA` — Academia funnel via prompt
-- `motusdao-hub` — authenticated Hub companion + Prisma progress
+configureMottyPayments(myAdapter) // your DB, your chain, your wallet
+export const POST = createMottyChatHandler({ enabledTools: [...PAYMENT_ENABLED_TOOLS] })
+```
+
+| You install | You get | You still own |
+| --- | --- | --- |
+| `createMottyChatHandler()` | the agent loop + tool runtime inside your Next.js app | auth, DB, RPC, keys |
+| `MottyPaymentsAdapter` | 10 payment/booking tools wired to your logic | every signature |
+| `MottyWidget` | chat UI + typed action cards (`transfer`, `escrow`, `stripe`) | the design system |
+| `src/chain/` | Celo escrow + ERC-8021 helpers | the contract deployment |
+
+The agent never signs and never holds funds. It prepares a typed action; the
+host renders it and the user signs.
+
+## Reference deployment: MotusDAO Hub
+
+Motty Pay is the payment agent inside **MotusDAO Hub**, a therapy platform for
+Latin America. It is not a separate bot or a back-office automation: it is a
+lightweight agent embedded in the product, mounted in the Hub shell on every
+page, with a server-side tool runtime inside the same Next.js application. There
+is no separate agent infrastructure, no custodian, and no key storage. The agent
+runs where the money and the user already are.
+
+The agent understands the page and the user's role. A patient can say "book
+another session with my therapist"; a professional can ask "what's on my agenda?".
+Motty resolves the intent, calls the right tools, and returns either an answer or
+a typed action that the interface renders as an in-chat card.
+
+### What the agent can do
+
+| Capability | What happens |
+| --- | --- |
+| **Book therapy** | Fetches the therapist's real availability, shows date/time options, asks which one, then creates the session and its escrow |
+| **Charge and settle in wMXN** | Prepares the escrow deposit, the patient signs, the professional confirms, the settlement agent releases the 90/10 split on Celo |
+| **Pay people** | "Send 1 wMXN to John" resolves a `.motus` name, a Hub display name, "my therapist", or an explicit address — and confirms the human match before creating the payment |
+| **Pay the treasury** | Memberships and Academy courses, Stripe or crypto; crypto is converted to the wMXN equivalent and sent to the DAO treasury |
+| **Use the Ripio ramp** | Returns the on-ramp link so a patient can buy wMXN with local money |
+| **See status** | Session, escrow state, balances and payment history |
+
+*Provenance: extracted from three near-copies in `LandingMotus` (public guide +
+funnel tools), `PD-MD-LandingA` (Academia funnel) and `motusdao-hub`
+(authenticated companion + Prisma progress).*
 
 ## Agents on Open Rails — Stable Agents: LatAm (submission)
 
-**Motty Pay**: an agent that books, charges and settles therapy in Mexican pesos
-on Celo. The patient tops up with Ripio's ramp, the deposit sits in an onchain
-escrow in **wMXN**, and the agent releases 90% to the psychologist and 10% to
-the DAO treasury on its own.
+**Motty Pay** books, charges and settles therapy in Mexican pesos on Celo. The
+patient tops up with Ripio's ramp, the deposit sits in an onchain escrow in
+**wMXN**, and the agent releases 90% to the psychologist and 10% to the DAO
+treasury on its own.
 
 | What | Where |
 | --- | --- |
@@ -135,7 +179,7 @@ Cross-check any hash on Celoscan:
 `https://celoscan.io/tx/<hash>` — the ERC-8021 suffix
 `celo_0ee3486819c5` is in the calldata.
 
-## What you get
+## Package surface
 
 | Layer | Import | Contents |
 |-------|--------|----------|
