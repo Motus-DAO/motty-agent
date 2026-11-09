@@ -68,3 +68,24 @@ docker run -d --name motty-a2a --restart unless-stopped \
 ```
 
 Put a TLS reverse proxy in front and point the agent card `url` at it.
+
+## Live deployment (vps-brahma)
+
+| Item | Value |
+| --- | --- |
+| Endpoint | <http://169.58.172.120:9088/> |
+| Card | <http://169.58.172.120:9088/.well-known/agent-card.json> |
+| Health | <http://169.58.172.120:9088/health> |
+| Container | `motty-a2a` (node:20-alpine, `--restart unless-stopped`, port 9088 → 8080) |
+| App dir | `/home/gerry/motty` (dist + package.json bind-mounted read-only) |
+
+Redeploy after a build:
+
+```bash
+npm run build
+tar czf - dist package.json | ssh vps-brahma 'tar xzf - -C ~/motty'
+ssh vps-brahma 'docker restart motty-a2a'
+```
+
+Still plain HTTP on a raw port: put TLS in front (the host already runs Caddy on
+80/443) and point `MOTTY_PUBLIC_URL` at the final URL.

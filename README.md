@@ -68,8 +68,13 @@ The same tool layer is reachable without the chat UI:
 | **MCP** (stdio) | `npm run mcp` | `tools/list` + `tools/call` over the 11 tools — Claude Desktop, Cursor, any MCP client |
 | **A2A** (HTTP) | `npm run a2a` | `/.well-known/agent-card.json` + JSON-RPC `message/send` with `/tool <name> [json]` |
 
+**Live A2A endpoint:** <http://169.58.172.120:9088/> ·
+card <http://169.58.172.120:9088/.well-known/agent-card.json> ·
+health <http://169.58.172.120:9088/health>
+
 ```bash
-printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"quoteTherapyInWmxn","arguments":{}}}' | npm run mcp
+curl -s -X POST http://169.58.172.120:9088/ -H 'content-type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"message/send","params":{"message":{"role":"user","parts":[{"kind":"text","text":"/tool quoteTherapyInWmxn"}]}}}'
 # → {"ok":true,"tool":"quoteTherapyInWmxn","data":{"usd":45,"mxn":832.5,...}}
 ```
 
